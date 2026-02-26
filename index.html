@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTC Derivatives Margining Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:     #0f0f0f;
+    --paper:   #f5f2ed;
+    --rule:    #d4cfc7;
+    --accent:  #c0392b;
+    --dim:     #7a7570;
+    --card:    #ffffff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 48px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav-brand {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+
+  /* ── SECTIONS ── */
+  section { padding: 120px 48px; max-width: 1100px; margin: 0 auto; }
+  section + section { padding-top: 0; }
+
+  /* ── HERO ── */
+  #hero {
+    padding-top: 180px;
+    padding-bottom: 80px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 80px;
+    align-items: end;
+    border-bottom: 1px solid var(--rule);
+  }
+  .hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 1.08;
+    font-weight: 400;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .hero-sub {
+    font-size: 16px;
+    color: var(--dim);
+    line-height: 1.65;
+    max-width: 520px;
+  }
+  .hero-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .meta-item {
+    padding: 20px;
+    border: 1px solid var(--rule);
+    background: var(--card);
+  }
+  .meta-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 6px;
+  }
+  .meta-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--ink);
+  }
+  .meta-value span {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--dim);
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    margin-bottom: 52px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── CASE ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+  .prose p {
+    color: #2a2520;
+    margin-bottom: 16px;
+    font-size: 15px;
+  }
+  .prose p:last-child { margin-bottom: 0; }
+
+  .callout {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 32px;
+    margin-top: 0;
+  }
+  .callout-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .callout p {
+    font-size: 15px;
+    line-height: 1.65;
+    color: #c8c4be;
+  }
+
+  /* ── MODEL ── */
+  .model-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-bottom: 48px;
+  }
+  .model-card {
+    background: var(--card);
+    padding: 28px;
+  }
+  .model-icon {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .model-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+  .model-card p {
+    font-size: 13px;
+    color: var(--dim);
+    line-height: 1.6;
+  }
+
+  .equation-block {
+    border-left: 2px solid var(--accent);
+    padding: 20px 28px;
+    background: var(--card);
+    margin-top: 32px;
+  }
+  .equation-block .eq-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 10px;
+  }
+  .equation-block code {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    display: block;
+    line-height: 2;
+  }
+
+  /* ── RESULTS ── */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-bottom: 56px;
+  }
+  .stat-card {
+    background: var(--card);
+    padding: 28px 24px;
+  }
+  .stat-card.accent-bg {
+    background: var(--ink);
+  }
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    line-height: 1;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .stat-card.accent-bg .stat-num { color: var(--paper); }
+  .stat-card.accent-bg .stat-label { color: #7a7570; }
+  .stat-card.accent-bg .stat-sub { color: #555; }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 4px;
+  }
+  .stat-sub {
+    font-size: 12px;
+    color: var(--dim);
+    margin-top: 6px;
+  }
+  .highlight { color: var(--accent); }
+
+  /* ── POLICY TABLE ── */
+  .policy-section {
+    margin-bottom: 48px;
+  }
+  .policy-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 6px;
+  }
+  .policy-q {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    margin-bottom: 20px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  thead tr {
+    border-bottom: 2px solid var(--ink);
+  }
+  th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-align: left;
+    padding: 10px 14px 10px 0;
+    font-weight: 400;
+  }
+  td {
+    padding: 11px 14px 11px 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .tag-down { color: var(--accent); font-family: 'DM Mono', monospace; font-size: 11px; }
+  .tag-up   { color: #2d7a4f;       font-family: 'DM Mono', monospace; font-size: 11px; }
+  .policy-note {
+    font-size: 12px;
+    color: var(--dim);
+    border-left: 2px solid var(--rule);
+    padding-left: 14px;
+    margin-top: 12px;
+  }
+
+  .finding-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .finding-card {
+    background: var(--card);
+    padding: 28px;
+  }
+  .finding-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .finding-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+  .finding-card p {
+    font-size: 13px;
+    color: var(--dim);
+    line-height: 1.65;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 40px 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-left {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--dim);
+    line-height: 1.8;
+  }
+  .footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    border: 1px solid var(--ink);
+    padding: 12px 24px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .footer-link:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* ── FADE-IN ── */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 860px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    section { padding: 80px 24px; }
+    #hero { grid-template-columns: 1fr; gap: 40px; padding-top: 120px; }
+    .hero-meta { flex-direction: row; flex-wrap: wrap; }
+    .meta-item { flex: 1; min-width: 140px; }
+    .two-col, .model-grid, .results-grid, .finding-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 24px; align-items: flex-start; padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">OTC Margining Simulator</span>
+  <div class="nav-links">
+    <a href="#case">Case</a>
+    <a href="#model">Model</a>
+    <a href="#results">Results</a>
+    <a href="#findings">Findings</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="fade-in">
+    <div class="hero-tag">Quantitative Finance · Risk Modelling</div>
+    <h1>OTC Derivatives<br><em>Margining</em><br>Simulator</h1>
+    <p class="hero-sub">A Monte Carlo study of liquidity risk, fire-sale dynamics, and procyclical margin requirements in non-centrally-cleared derivatives markets.</p>
+  </div>
+  <div class="hero-meta fade-in" style="transition-delay:0.15s">
+    <div class="meta-item">
+      <div class="meta-label">Simulation Scale</div>
+      <div class="meta-value">10,000<span>Monte Carlo paths · 300 trading days</span></div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Framework</div>
+      <div class="meta-value">Python<span>NumPy · SciPy · Matplotlib</span></div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Model</div>
+      <div class="meta-value">Arith. BM<span>σ = 20% return vol · ATM forward</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CASE -->
+<section id="case">
+  <div class="section-header fade-in">
+    <span class="section-num">01</span>
+    <h2>The Case</h2>
+  </div>
+  <div class="two-col fade-in">
+    <div class="prose">
+      <p>The 2008 financial crisis exposed a fundamental fragility in OTC derivatives markets. Bilateral credit exposure between counterparties was largely unhedged, and the failure of institutions such as Lehman Brothers and AIG created cascading losses across the global financial system.</p>
+      <p>In response, regulators mandated margining for non-centrally-cleared derivatives under <strong>Basel III</strong>, <strong>EMIR</strong> (Europe), and <strong>Dodd-Frank</strong> (US). The core idea: require counterparties to post cash collateral that moves daily with mark-to-market values.</p>
+      <p>But mandatory margining introduces its own risk. Institutions forced to post margin under stress must liquidate assets quickly — often at steep discounts. This creates a <em>liquidity spiral</em>: forced selling depresses prices, which triggers more margin calls, which forces more selling.</p>
+    </div>
+    <div>
+      <div class="callout fade-in" style="transition-delay:0.1s">
+        <div class="callout-label">The Central Tension</div>
+        <p>Tighter margin requirements protect the Dealer from credit losses. But they drain the Investor's liquidity buffer, increasing the probability that the Investor defaults not from insolvency, but from running out of cash to meet margin calls.</p>
+      </div>
+      <div class="callout" style="background: var(--card); border: 1px solid var(--rule); margin-top: 1px; padding: 24px 32px;">
+        <div class="callout-label" style="color: var(--dim);">Regulatory Context</div>
+        <p style="color: var(--dim); font-size: 13px;">Post-2008 margining rules were calibrated under relatively stable market conditions. The procyclicality problem — that IM requirements double during stress precisely when institutions are most fragile — remains an active area of regulatory debate.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODEL -->
+<section id="model">
+  <div class="section-header fade-in">
+    <span class="section-num">02</span>
+    <h2>What We Built</h2>
+  </div>
+
+  <div class="model-grid fade-in">
+    <div class="model-card">
+      <div class="model-icon">∿</div>
+      <h3>Price Simulation</h3>
+      <p>10,000 independent asset price paths via arithmetic Brownian motion with dollar volatility σ<sub>s</sub> = σ × S₀ = 20. MTM value V<sub>t</sub> = Q(S<sub>t</sub> − K) updates daily.</p>
+    </div>
+    <div class="model-card">
+      <div class="model-icon">⊘</div>
+      <h3>Two Default Channels</h3>
+      <p>Exogenous Poisson defaults (1% annual PD) and endogenous liquidity defaults when the Investor exhausts both cash and illiquid assets meeting VM calls.</p>
+    </div>
+    <div class="model-card">
+      <div class="model-icon">△</div>
+      <h3>Fire-Sale Mechanics</h3>
+      <p>When cash is insufficient, the Investor sells illiquid assets at a 10% discount. Assets to sell = shortfall ÷ (1 − h), so each sale incurs a permanent wealth loss of h × assets sold.</p>
+    </div>
+    <div class="model-card">
+      <div class="model-icon">◫</div>
+      <h3>MPOR Close-Out</h3>
+      <p>On default, VM exchange freezes for 10 days (the Margin Period of Risk). The Dealer closes out at t + MPOR. Loss = max(0, −V<sub>close</sub> − collateral held).</p>
+    </div>
+    <div class="model-card">
+      <div class="model-icon">≋</div>
+      <h3>Regime-Switching Vol</h3>
+      <p>For procyclicality analysis, volatility switches from 15% to 30% when the daily price drop exceeds 2% of S₀, triggering an IM top-up demand simultaneous with the VM call.</p>
+    </div>
+    <div class="model-card">
+      <div class="model-icon">∞</div>
+      <h3>Systemic Externality</h3>
+      <p>Endogenous haircut h<sub>t</sub> = min(h₀ × (1 + θ · f<sub>t−1</sub>), 50%) where f<sub>t−1</sub> is the lagged fraction of institutions fire-selling, creating a liquidity spiral.</p>
+    </div>
+  </div>
+
+  <div class="equation-block fade-in">
+    <div class="eq-label">Key Equations</div>
+    <code>IM  =  z₀.₉₉ · Q · σₛ · √(MPOR · dt)  =  $9,268</code>
+    <code>VM<sub>t</sub>  =  V<sub>t</sub> − V<sub>t−1</sub>  =  Q · (S<sub>t</sub> − S<sub>t−1</sub>)  ~  N(0, Q²·σₛ²·dt)</code>
+    <code>Dealer Loss  =  max(0,  −V<sub>t+MPOR</sub>  −  (IM + last VM payment))</code>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="section-header fade-in">
+    <span class="section-num">03</span>
+    <h2>Main Results</h2>
+  </div>
+
+  <!-- Headline stats -->
+  <div class="results-grid fade-in">
+    <div class="stat-card accent-bg">
+      <div class="stat-label">Total Default Rate</div>
+      <div class="stat-num" style="color:#e8e2d9">36.3%</div>
+      <div class="stat-sub">vs 1.4% exogenous only</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Liquidity-Driven Defaults</div>
+      <div class="stat-num">3,492</div>
+      <div class="stat-sub">of 3,632 total defaults</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Paths with Fire-Sales</div>
+      <div class="stat-num">59.9%</div>
+      <div class="stat-sub">Mean cost $833 per affected path</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Mean Dealer Loss</div>
+      <div class="stat-num">$4,557</div>
+      <div class="stat-sub">P99: $20,620 · Max: $28,089</div>
+    </div>
+  </div>
+
+  <!-- 6a policy table -->
+  <div class="policy-section fade-in">
+    <div class="policy-title">Policy Experiment 6a</div>
+    <div class="policy-q">How does raising the Initial Margin multiplier affect the risk/liquidity trade-off?</div>
+    <table>
+      <thead>
+        <tr>
+          <th>IM Multiplier</th>
+          <th>IM ($)</th>
+          <th>Default Rate</th>
+          <th>Liq. Default Rate</th>
+          <th>Mean Fire-Sale Cost</th>
+          <th>Mean Dealer Loss</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">1.0×  <span style="font-size:10px;color:var(--dim)">(baseline)</span></td>
+          <td class="mono">$9,268</td>
+          <td>36.3%</td>
+          <td>34.9%</td>
+          <td class="mono">$499</td>
+          <td class="mono">$4,557</td>
+        </tr>
+        <tr>
+          <td class="mono">1.5×</td>
+          <td class="mono">$13,903</td>
+          <td>48.2% <span class="tag-down">↑</span></td>
+          <td>46.8%</td>
+          <td class="mono">$646 <span class="tag-down">↑</span></td>
+          <td class="mono">$1,934 <span class="tag-up">↓</span></td>
+        </tr>
+        <tr>
+          <td class="mono">2.0×</td>
+          <td class="mono">$18,537</td>
+          <td>61.5% <span class="tag-down">↑</span></td>
+          <td>60.1%</td>
+          <td class="mono">$812 <span class="tag-down">↑</span></td>
+          <td class="mono">$121 <span class="tag-up">↓↓</span></td>
+        </tr>
+        <tr>
+          <td class="mono">2.5×</td>
+          <td class="mono">$23,171</td>
+          <td>77.2% <span class="tag-down">↑↑</span></td>
+          <td>75.8%</td>
+          <td class="mono">$972 <span class="tag-down">↑↑</span></td>
+          <td class="mono">$0 <span class="tag-up">↓↓↓</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="policy-note">Higher IM fully protects the Dealer but systematically destroys Investor liquidity. At 2.5×, Dealer losses reach zero while 77% of Investors default — all from liquidity exhaustion, not insolvency.</p>
+  </div>
+
+  <!-- 6c MPOR table -->
+  <div class="policy-section fade-in">
+    <div class="policy-title">Policy Experiment 6c</div>
+    <div class="policy-q">Does a shorter Margin Period of Risk reduce systemic risk?</div>
+    <table>
+      <thead>
+        <tr>
+          <th>MPOR</th>
+          <th>IM ($)</th>
+          <th>Default Rate</th>
+          <th>Mean Fire-Sale Cost</th>
+          <th>Mean Dealer Loss</th>
+          <th>P99 Dealer Loss</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">10 days <span style="font-size:10px;color:var(--dim)">(baseline)</span></td>
+          <td class="mono">$9,268</td>
+          <td>35.1%</td>
+          <td class="mono">$493</td>
+          <td class="mono">$4,426</td>
+          <td class="mono">$20,624</td>
+        </tr>
+        <tr>
+          <td class="mono">5 days</td>
+          <td class="mono">$6,554</td>
+          <td>29.5% <span class="tag-up">↓</span></td>
+          <td class="mono">$414 <span class="tag-up">↓</span></td>
+          <td class="mono">$5,262 <span class="tag-down">↑</span></td>
+          <td class="mono">$24,091 <span class="tag-down">↑</span></td>
+        </tr>
+        <tr>
+          <td class="mono">3 days</td>
+          <td class="mono">$5,077</td>
+          <td>26.9% <span class="tag-up">↓↓</span></td>
+          <td class="mono">$377 <span class="tag-up">↓↓</span></td>
+          <td class="mono">$5,532 <span class="tag-down">↑↑</span></td>
+          <td class="mono">$25,886 <span class="tag-down">↑↑</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="policy-note">Reducing MPOR lowers the IM requirement, reducing defaults and fire-sale costs for the Investor. But the Dealer closes out with less collateral, increasing tail losses. A true two-sided trade-off.</p>
+  </div>
+
+  <!-- 6b + 6d side by side -->
+  <div class="two-col fade-in">
+    <div class="policy-section">
+      <div class="policy-title">Policy Experiment 6b</div>
+      <div class="policy-q">Daily vs Weekly VM Settlement</div>
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Daily</th><th>Weekly</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Default rate</td><td class="mono">36.3%</td><td class="mono">34.3%</td></tr>
+          <tr><td>Mean dealer loss</td><td class="mono">$4,557</td><td class="mono">$4,656</td></tr>
+          <tr><td>Mean fire-sale cost</td><td class="mono">$499</td><td class="mono">$505</td></tr>
+          <tr><td>Fire-sale events/path</td><td class="mono">5.09</td><td class="mono">2.34</td></tr>
+        </tbody>
+      </table>
+      <p class="policy-note">Weekly VM reduces event frequency but concentrates exposure into larger lump-sum calls. Outcomes are nearly identical — the risk is rescheduled, not reduced.</p>
+    </div>
+    <div class="policy-section">
+      <div class="policy-title">Policy Experiment 6d</div>
+      <div class="policy-q">Accepting Illiquid Assets as VM Collateral</div>
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Fire-Sales</th><th>Pledging</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Default rate</td><td class="mono">36.3%</td><td class="mono">36.3%</td></tr>
+          <tr><td>Fire-sale cost</td><td class="mono">$499</td><td class="mono highlight">$0</td></tr>
+          <tr><td>Mean illiquid pledged</td><td class="mono">—</td><td class="mono">$4,406</td></tr>
+          <tr><td>Mean dealer loss</td><td class="mono">$4,557</td><td class="mono">$1,762</td></tr>
+        </tbody>
+      </table>
+      <p class="policy-note">Pledging eliminates fire-sale costs and reduces Dealer losses (more collateral held). Default rate unchanged — the Investor's solvency problem remains. Risk is redistributed, not eliminated.</p>
+    </div>
+  </div>
+
+  <!-- Procyclicality -->
+  <div class="policy-section fade-in" style="margin-top: 20px;">
+    <div class="policy-title">Section 7 — Procyclicality and Systemic Risk</div>
+    <div class="policy-q">What happens when IM is recalculated from current stressed volatility?</div>
+    <div class="two-col" style="margin-bottom: 12px;">
+      <div>
+        <table>
+          <thead>
+            <tr><th>Scenario</th><th>Default Rate</th><th>Mean Fire-Sale Cost</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Fixed-vol baseline</td><td class="mono">36.3%</td><td class="mono">$499</td></tr>
+            <tr><td>Procyclical IM</td><td class="mono highlight">79.1%</td><td class="mono highlight">$1,037</td></tr>
+            <tr><td>Systemic (endogenous h)</td><td class="mono">36.4%</td><td class="mono">$520</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex; flex-direction:column; gap: 12px;">
+        <div style="background:var(--card); border:1px solid var(--rule); padding: 20px 24px;">
+          <div class="stat-label">Stress-regime IM spike</div>
+          <div style="font-family:'DM Serif Display',serif; font-size:26px; margin: 4px 0;">+100%</div>
+          <div style="font-size:12px;color:var(--dim)">$6,951 → $13,903 when vol doubles from 15% to 30%</div>
+        </div>
+        <div style="background:var(--card); border:1px solid var(--rule); padding: 20px 24px;">
+          <div class="stat-label">Through-the-cycle IM alternative</div>
+          <div style="font-family:'DM Serif Display',serif; font-size:26px; margin: 4px 0;">$7,087</div>
+          <div style="font-size:12px;color:var(--dim)">Stable level based on long-run mean vol (15.3%) — avoids the spike</div>
+        </div>
+      </div>
+    </div>
+    <p class="policy-note">Procyclical IM more than doubles the default rate — from 36% to 79% — by demanding additional cash top-ups precisely when prices are falling. The through-the-cycle alternative holds IM near $7,087 regardless of current vol, avoiding the spiral at the cost of slightly underestimating risk in calm periods.</p>
+  </div>
+</section>
+
+<!-- FINDINGS -->
+<section id="findings">
+  <div class="section-header fade-in">
+    <span class="section-num">04</span>
+    <h2>Key Findings</h2>
+  </div>
+  <div class="finding-grid fade-in">
+    <div class="finding-card">
+      <div class="finding-num">01</div>
+      <h3>Liquidity default dwarfs credit default</h3>
+      <p>96% of all defaults in the simulation are liquidity-driven — the Investor runs out of assets to meet margin calls, not because it is insolvent. A 1% annual credit probability becomes a 36% actual default rate under realistic balance sheet constraints.</p>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">02</div>
+      <h3>Tighter IM is a strict trade-off</h3>
+      <p>Doubling the IM multiplier reduces mean Dealer losses from $4,557 to $121 but raises the default rate from 36% to 62%. At 2.5×, Dealer losses vanish entirely while 77% of Investors default from liquidity exhaustion.</p>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">03</div>
+      <h3>Pledging redistributes, not reduces, risk</h3>
+      <p>Accepting illiquid assets as collateral eliminates fire-sale costs and reduces Dealer losses through better collateralisation. But the Dealer now holds illiquid assets it must liquidate at the same 10% haircut on default. The systemic risk is shifted, not removed.</p>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">04</div>
+      <h3>Procyclical IM is catastrophic under stress</h3>
+      <p>Recalculating IM from current stressed volatility more than doubles the default rate — 36% to 79% — by simultaneously demanding IM top-ups and VM payments when prices are falling. Through-the-cycle IM avoids the spiral at minimal cost in normal times.</p>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">05</div>
+      <h3>MPOR reduction is genuinely two-sided</h3>
+      <p>Cutting MPOR from 10 to 3 days lowers the IM requirement by 45%, reducing defaults and fire-sale costs for the Investor. But the Dealer closes out with less collateral, raising the P99 Dealer loss from $20,624 to $25,886.</p>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">06</div>
+      <h3>VM frequency reschedules, not reduces, risk</h3>
+      <p>Weekly settlement halves the number of fire-sale events per path but concentrates exposure into larger lump-sum calls. Total defaults, fire-sale costs, and Dealer losses are nearly identical to daily settlement — the risk is rescheduled, not mitigated.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="fade-in">
+  <div class="footer-left">
+    OTC Derivatives Margining Simulator<br>
+    Python · NumPy · SciPy · Matplotlib · Pandas<br>
+    Arithmetic BM · 10,000 paths · 300 trading days
+  </div>
+  <a class="footer-link" href="https://github.com" target="_blank">
+    View on GitHub &rarr;
+  </a>
+</footer>
+
+<script>
+  // Intersection observer for fade-ins
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
